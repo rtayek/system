@@ -1,1 +1,1 @@
-C:/Users/ray/real-md-files/agents.md
+C:/Users/ray/real-md-files/AGENTS.md
