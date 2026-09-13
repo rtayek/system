@@ -5,7 +5,7 @@
 set -u
 
 script_version=1
-default_projects='system chatmap dotmdfiles dotfiles bin'
+default_projects='system chatmap dotmdfiles ~/dotfiles ~/bin'
 shared_paths='AGENTS.md .llm/human.md .llm/persona.md'
 
 usage() {
@@ -66,19 +66,20 @@ resolve_path() {
     fi
 }
 
-system_dir=$workspace/system
-if [ ! -d "$system_dir" ]; then
-    printf 'Error: System project not found: %s\n' "$system_dir" >&2
+canonical_dir=$workspace/dotmdfiles/real
+if [ ! -d "$canonical_dir" ]; then
+    printf 'Error: Canonical directory not found: %s\n' "$canonical_dir" >&2
     exit 2
 fi
 
-if [ ! -d "$system_dir/.git" ] && [ ! -f "$system_dir/.git" ]; then
-    printf 'Error: System project is not a Git working tree: %s\n' "$system_dir" >&2
+if [ ! -d "$workspace/dotmdfiles/.git" ] && [ ! -f "$workspace/dotmdfiles/.git" ]; then
+    printf 'Error: dotmdfiles project is not a Git working tree: %s\n' "$workspace/dotmdfiles" >&2
     exit 2
 fi
 
 for relative_path in $shared_paths; do
-    canonical_path=$system_dir/$relative_path
+    canonical_filename=$(basename "$relative_path")
+    canonical_path=$canonical_dir/$canonical_filename
     if [ ! -e "$canonical_path" ]; then
         printf 'Error: canonical file is missing or broken: %s\n' "$canonical_path" >&2
         exit 2
@@ -92,11 +93,15 @@ done
 failures=0
 checked=0
 
-printf 'System project: %s\n' "$system_dir"
+printf 'Canonical dir: %s\n' "$canonical_dir"
 printf 'Workspace: %s\n' "$workspace"
 
 for project_name do
-    project_dir=$workspace/$project_name
+    case $project_name in
+        "~"/*) project_dir=$HOME/${project_name#"~/"} ;;
+        /*|[A-Za-z]:*) project_dir=$project_name ;;
+        *) project_dir=$workspace/$project_name ;;
+    esac
 
     printf '%s\n' '------------------------------------------------------------'
     printf 'Project: %s\n' "$project_dir"
@@ -130,11 +135,12 @@ for project_name do
 
     for relative_path in $shared_paths; do
         project_path=$project_dir/$relative_path
-        canonical_path=$system_dir/$relative_path
+        canonical_filename=$(basename "$relative_path")
+        canonical_path=$canonical_dir/$canonical_filename
 
-        if [ "$project_dir" = "$system_dir" ]; then
+        if [ "$project_dir" = "$workspace/dotmdfiles" ]; then
             if [ -r "$canonical_path" ]; then
-                printf 'OK:   %s is the canonical file\n' "$relative_path"
+                printf 'OK:   %s is provided by canonical source\n' "$relative_path"
             else
                 printf 'FAIL: canonical %s is unreadable\n' "$relative_path"
                 failures=$((failures + 1))
