@@ -56,16 +56,6 @@ if [ "$#" -eq 0 ]; then
     set -- $default_projects
 fi
 
-resolve_path() {
-    if command -v realpath >/dev/null 2>&1; then
-        realpath "$1" 2>/dev/null
-    elif command -v readlink >/dev/null 2>&1; then
-        readlink -f "$1" 2>/dev/null
-    else
-        return 1
-    fi
-}
-
 canonical_dir=$workspace/dotmdfiles/real
 if [ ! -d "$canonical_dir" ]; then
     printf 'Error: Canonical directory not found: %s\n' "$canonical_dir" >&2
@@ -82,10 +72,6 @@ for relative_path in $shared_paths; do
     canonical_path=$canonical_dir/$canonical_filename
     if [ ! -e "$canonical_path" ]; then
         printf 'Error: canonical file is missing or broken: %s\n' "$canonical_path" >&2
-        exit 2
-    fi
-    if ! resolve_path "$canonical_path" >/dev/null; then
-        printf 'Error: realpath or readlink -f is required.\n' >&2
         exit 2
     fi
 done
@@ -148,20 +134,16 @@ for project_name do
             continue
         fi
 
-        if [ ! -L "$project_path" ]; then
-            printf 'FAIL: %s is not a symlink\n' "$relative_path"
+        if [ ! -f "$project_path" ] || [ -L "$project_path" ]; then
+            printf 'FAIL: %s is missing or is not an ordinary file\n' "$relative_path"
             failures=$((failures + 1))
             continue
         fi
 
-        project_target=$(resolve_path "$project_path") || project_target=''
-        canonical_target=$(resolve_path "$canonical_path") || canonical_target=''
-
-        if [ -n "$project_target" ] && [ "$project_target" = "$canonical_target" ]; then
-            printf 'OK:   %s -> %s\n' "$relative_path" "$project_target"
+        if cmp -s "$project_path" "$canonical_path"; then
+            printf 'OK:   %s matches canonical copy\n' "$relative_path"
         else
-            printf 'FAIL: %s resolves to %s\n' "$relative_path" "${project_target:-(broken link)}"
-            printf '      expected %s\n' "$canonical_target"
+            printf 'FAIL: %s differs from %s\n' "$project_path" "$canonical_path"
             failures=$((failures + 1))
         fi
     done
@@ -174,7 +156,7 @@ if [ "$checked" -eq 0 ]; then
 fi
 
 if [ "$failures" -eq 0 ]; then
-    printf 'PASS: %s project(s) checked; all links are consistent.\n' "$checked"
+    printf 'PASS: %s project(s) checked; all shared files are consistent.\n' "$checked"
     exit 0
 fi
 
