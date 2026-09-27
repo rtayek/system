@@ -1,62 +1,69 @@
 # The System
 
-The System is a top-level coordination project for an experimental AI-native
-working environment. It connects three related projects without replacing
-their repositories, histories, or local responsibilities.
+The System is the umbrella repository for Ray's related projects. It owns the
+small amount of information that genuinely crosses project boundaries while
+leaving implementation and history in the repositories that do the work.
 
 ## Projects
 
 | Project | Role |
 | --- | --- |
-| [ChatMap](https://github.com/rtayek/chatmap) | Extract, preserve, search, and maintain durable semantic knowledge from conversations. |
-| [dotmdfiles](https://github.com/rtayek/dotmdfiles) | Study and develop conventions for Markdown files used by people and LLM tools. |
-| [dotfiles](https://github.com/rtayek/dotfiles) | Maintain workstation configuration, shell behavior, and project-launching infrastructure. |
+| [ChatMap](https://github.com/rtayek/chatmap) | Preserve, search, and maintain durable knowledge from conversations. |
+| [dotmdfiles](https://github.com/rtayek/dotmdfiles) | Develop and deploy shared Markdown conventions for people and agents. |
+| [dotfiles](https://github.com/rtayek/dotfiles) | Maintain workstation, shell, terminal, and project-launcher configuration. |
+| [bin](https://github.com/rtayek/bin) | Provide user-facing commands that connect the other projects. |
 
-## Purpose
+Other experiments may join the umbrella without becoming System components.
 
-This repository provides a place to:
+## Ownership
 
-- maintain the shared direction across the three projects;
-- record decisions and dependencies that cross repository boundaries;
-- distinguish reusable system principles from project-specific experiments;
-- provide a stable entry point for understanding how the projects fit together.
+System owns:
 
-The System is a coordination and design layer. It is not a monorepo, a
-replacement for the three projects, or an agent orchestrator.
+- the cross-project registry in `projects.tsv`;
+- deployment and consistency checks for that registry;
+- cross-project architecture, decisions, and verification.
 
-## Current Direction
+System does not own:
 
-The current work is exploring a file protocol that helps an LLM enter a
-project, find authoritative context, and avoid loading irrelevant material.
+- ChatMap's Java implementation or local runtime data;
+- dotmdfiles templates and their five-file deployment;
+- dotfiles shell, terminal, and launcher implementation;
+- bin's user-facing commands.
 
-The main working ideas are:
+This is an umbrella repository, not a monorepo or an agent orchestrator.
 
-- Standardize discovery, not internal organization.
-- Let Git preserve chronology while Markdown preserves durable knowledge.
-- Use file roles and authority rather than relying only on filenames.
-- Use YAML headers for compact human- and LLM-readable state.
-- Use JSON sidecars for machine-readable tracking and validation.
-- Keep raw transcripts, generated output, and other high-volume material
-  outside normal agent ingestion.
+## Project registry
 
-These ideas are being tested manually before adding substantial automation.
-Only principles supported by experience in the individual projects should
-become system-wide conventions.
+`projects.tsv` is the committed source of truth. It uses real tab characters
+and this six-column header:
 
-## Project Boundaries
+```text
+name    path    port    color    chatgpt-url    claude-url
+```
 
-Each project owns its own implementation, documentation, working context,
-tests, and history. Material may begin here while its proper home is being
-determined, but project-specific decisions should ultimately remain with the
-project they govern.
+Deploy it as an ordinary file:
 
-The current [ChatMap handoff](ChatMap-Core-Repository.md) describes the active
-manual file-protocol experiment. Most of its operational details belong to
-ChatMap. This repository is the place to evaluate which results should later
-be shared with dotmdfiles, dotfiles, or the System as a whole.
+```sh
+sh deploy-projects.sh
+```
 
-## Status
+The default destination is `~/.config/ray/projects.tsv`. Override it with the
+custom lower-camel environment variable `projectsFile`. The older
+`PROJECTS_FILE` spelling remains temporarily accepted during migration.
 
-The System is at an early design and experimentation stage. The immediate goal
-is to learn from the ChatMap pilot, preserve useful cross-project decisions,
-and avoid imposing a large framework before the workflow has been proven.
+Validate the committed file and confirm that the deployed copy is current:
+
+```sh
+sh check-projects.sh
+```
+
+The registry is deliberately a versioned text file rather than a database. It
+is small, reviewable, portable, and shared by commands in dotmdfiles, dotfiles,
+and bin.
+
+## Current direction
+
+ChatMap remains the manual pilot for the dotmdfiles layout. System should adopt
+only cross-project conventions supported by experience in the individual
+projects. Routine agent work must keep `.chatmap-local/` outside normal reading
+and indexing.

@@ -1,0 +1,10 @@
+name	path	port	color	chatgpt-url	claude-url
+chatmap	~/eclipse-workspace/chatmap	1033	Blue		
+dotmdfiles	~/eclipse-workspace/dotmdfiles	1032	Green		
+five-rules	~/eclipse-workspace/five-rules	1034	Cyan		
+system	~/eclipse-workspace/system	1035	Magenta		
+clipboard	~/eclipse-workspace/clipboard	1036	Yellow		
+money	~/eclipse-workspace/money	1037	Red		
+openworker	~/eclipse-workspace/openworker	1038	Green		
+dotfiles	~/dotfiles	1031	Red		
+bin	~/bin				

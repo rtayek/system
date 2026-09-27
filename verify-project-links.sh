@@ -5,14 +5,14 @@
 set -u
 
 script_version=1
-default_projects='system chatmap dotmdfiles ~/dotfiles ~/bin'
+projectsFile=${projectsFile:-${PROJECTS_FILE:-"$HOME/.config/ray/projects.tsv"}}
 shared_paths='AGENTS.md .llm/human.md .llm/persona.md'
 
 usage() {
     printf 'Usage: %s [workspace [project ...]]\n' "${0##*/}"
     printf '\n'
-    printf 'With no arguments, the workspace is the parent of this script and\n'
-    printf 'the default projects are: %s\n' "$default_projects"
+    printf 'With no arguments, the workspace is the parent of this script.\n'
+    printf 'With no project arguments, paths are read from: %s\n' "$projectsFile"
     printf '\n'
     printf 'Examples:\n'
     printf '  %s\n' "${0##*/}"
@@ -52,8 +52,17 @@ workspace=$(CDPATH= cd -- "$workspace" 2>/dev/null && pwd -P) || {
 }
 
 if [ "$#" -eq 0 ]; then
-    # Project names contain no whitespace.
-    set -- $default_projects
+    if [ ! -f "$projectsFile" ]; then
+        printf 'Error: project registry not found: %s\n' "$projectsFile" >&2
+        exit 2
+    fi
+    tab=$(printf '\t')
+    defaultProjects=$(awk -F "$tab" 'NR > 1 { print $2 }' "$projectsFile")
+    if [ -z "$defaultProjects" ]; then
+        printf 'Error: project registry has no projects: %s\n' "$projectsFile" >&2
+        exit 2
+    fi
+    set -- $defaultProjects
 fi
 
 canonical_dir=$workspace/dotmdfiles/real
@@ -162,3 +171,4 @@ fi
 
 printf 'FAIL: %s problem(s) found in %s checked project(s).\n' "$failures" "$checked"
 exit 1
+
