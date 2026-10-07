@@ -1,3 +1,14 @@
+# Superseded ChatMap Core Repository Proposal
+
+> Status: superseded by the accepted consolidated-instructions decision in
+> `.llm/decisions/0001-consolidate-agent-instructions.md`.
+
+This document is retained as historical design evidence. Its index-based
+discovery chain, ASCII-only rule, and `map-manifest.json` name are not current
+System or ChatMap requirements. Current governing instructions are in each
+repository's `AGENTS.md`; current ChatMap metadata rules are in ChatMap's
+`.llm/manifest.json`.
+
 Hello! I am completely here and ready. If you already have an index.md, a map-manifest.json, and some other content sitting in your .llm/ folder, leave them exactly as they are. We do not want to overwrite or throw away any of the hard layout work you just completed. Instead, this handoff is designed to wrap around what you have built, treating your existing files as the true baseline.
 Here is your comprehensive, high-level Context Handoff Payload. You can copy this entire block, open a brand-new chat window, and paste it straight in to execute a perfect cold start.
 ------------------------------
@@ -34,5 +45,4 @@ When you open the new chat window and paste this handoff in, tell the incoming a
 * How to configure Obsidian's right-sidebar local graph view to watch this fresh .llm/ structure natively on Windows.
 * How to draft the exact ASCII-only content blocks inside the working-context.md window to synchronize with your current milestone.
 * Reviewing the JSON validation schema rules for your map-manifest.json tracker.
-
 

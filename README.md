@@ -10,10 +10,17 @@ leaving implementation and history in the repositories that do the work.
 | --- | --- |
 | [ChatMap](https://github.com/rtayek/chatmap) | Preserve, search, and maintain durable knowledge from conversations. |
 | [dotmdfiles](https://github.com/rtayek/dotmdfiles) | Develop and deploy shared Markdown conventions for people and agents. |
+| [five-rules](https://github.com/rtayek/five-rules) | Study deterministic N-dimensional agent simulations. |
+| [System](https://github.com/rtayek/system) | Own cross-project facts, registry data, verification, and decisions. |
+| [Clipboard](https://github.com/rtayek/clipboard) | Provide a Java desktop clipboard manager. |
+| [Money](https://github.com/rtayek/money) | Analyze personal transaction data and spending reports. |
+| [OpenWorker](https://github.com/rtayek/openworker) | Preserve bounded OpenWorker experiments and evidence. |
+| [util](https://github.com/rtayek/utilities) | Provide reusable Java utility code. |
 | [dotfiles](https://github.com/rtayek/dotfiles) | Maintain workstation, shell, terminal, and project-launcher configuration. |
 | [bin](https://github.com/rtayek/bin) | Provide user-facing commands that connect the other projects. |
 
-Other experiments may join the umbrella without becoming System components.
+This table mirrors the current `projects.tsv` registry. Experiments may join
+the umbrella without becoming core System components.
 
 ## Ownership
 
@@ -26,7 +33,8 @@ System owns:
 System does not own:
 
 - ChatMap's Java implementation or local runtime data;
-- dotmdfiles templates and their five-file deployment;
+- dotmdfiles templates and their two-file `CLAUDE.md` and `AGENTS.md`
+  deployment;
 - dotfiles shell, terminal, and launcher implementation;
 - bin's user-facing commands.
 

@@ -1,12 +1,11 @@
 #!/bin/sh
 
-# Verify the shared LLM discovery files in the System umbrella workspace.
+# Verify the shared governing files in the System umbrella workspace.
 
 set -u
 
 script_version=1
 projectsFile=${projectsFile:-${PROJECTS_FILE:-"$HOME/.config/ray/projects.tsv"}}
-shared_paths='AGENTS.md .llm/human.md .llm/persona.md'
 
 usage() {
     printf 'Usage: %s [workspace [project ...]]\n' "${0##*/}"
@@ -65,9 +64,10 @@ if [ "$#" -eq 0 ]; then
     set -- $defaultProjects
 fi
 
-canonical_dir=$workspace/dotmdfiles/real
-if [ ! -d "$canonical_dir" ]; then
-    printf 'Error: Canonical directory not found: %s\n' "$canonical_dir" >&2
+canonicalDir=$workspace/dotmdfiles/real
+syncScript=$workspace/dotmdfiles/bin/sync-project-files.sh
+if [ ! -d "$canonicalDir" ]; then
+    printf 'Error: Canonical directory not found: %s\n' "$canonicalDir" >&2
     exit 2
 fi
 
@@ -76,19 +76,22 @@ if [ ! -d "$workspace/dotmdfiles/.git" ] && [ ! -f "$workspace/dotmdfiles/.git" 
     exit 2
 fi
 
-for relative_path in $shared_paths; do
-    canonical_filename=$(basename "$relative_path")
-    canonical_path=$canonical_dir/$canonical_filename
-    if [ ! -e "$canonical_path" ]; then
-        printf 'Error: canonical file is missing or broken: %s\n' "$canonical_path" >&2
+for sharedPath in AGENTS.md CLAUDE.md; do
+    if [ ! -f "$canonicalDir/$sharedPath" ]; then
+        printf 'Error: canonical file is missing: %s\n' "$canonicalDir/$sharedPath" >&2
         exit 2
     fi
 done
 
+if [ ! -f "$syncScript" ]; then
+    printf 'Error: synchronization checker is missing: %s\n' "$syncScript" >&2
+    exit 2
+fi
+
 failures=0
 checked=0
 
-printf 'Canonical dir: %s\n' "$canonical_dir"
+printf 'Canonical dir: %s\n' "$canonicalDir"
 printf 'Workspace: %s\n' "$workspace"
 
 for project_name do
@@ -114,47 +117,30 @@ for project_name do
 
     checked=$((checked + 1))
 
-    if [ -r "$project_dir/CLAUDE.md" ] && grep -F 'AGENTS.md' "$project_dir/CLAUDE.md" >/dev/null 2>&1; then
-        printf 'OK:   CLAUDE.md routes to AGENTS.md\n'
+    if sh "$syncScript" --check "$project_dir"; then
+        printf 'OK:   shared governing content matches canonical sources\n'
     else
-        printf 'FAIL: CLAUDE.md is missing, unreadable, or does not mention AGENTS.md\n'
+        printf 'FAIL: shared governing content differs or is invalid\n'
         failures=$((failures + 1))
     fi
 
-    if [ -r "$project_dir/.llm/index.md" ] && [ ! -L "$project_dir/.llm/index.md" ]; then
-        printf 'OK:   .llm/index.md is project-owned\n'
-    else
-        printf 'FAIL: .llm/index.md is missing, unreadable, or is a symlink\n'
-        failures=$((failures + 1))
-    fi
-
-    for relative_path in $shared_paths; do
-        project_path=$project_dir/$relative_path
-        canonical_filename=$(basename "$relative_path")
-        canonical_path=$canonical_dir/$canonical_filename
-
-        if [ "$project_dir" = "$workspace/dotmdfiles" ]; then
-            if [ -r "$canonical_path" ]; then
-                printf 'OK:   %s is provided by canonical source\n' "$relative_path"
-            else
-                printf 'FAIL: canonical %s is unreadable\n' "$relative_path"
+    for relativePath in AGENTS.md CLAUDE.md; do
+        trackedMode=$(git -C "$project_dir" ls-files -s -- "$relativePath" |
+            awk 'NR == 1 { print $1 }')
+        case $trackedMode in
+            100644|100755)
+                printf 'OK:   %s is tracked as an ordinary file\n' "$relativePath"
+                ;;
+            '')
+                printf 'FAIL: %s is not tracked\n' "$relativePath"
                 failures=$((failures + 1))
-            fi
-            continue
-        fi
-
-        if [ ! -f "$project_path" ] || [ -L "$project_path" ]; then
-            printf 'FAIL: %s is missing or is not an ordinary file\n' "$relative_path"
-            failures=$((failures + 1))
-            continue
-        fi
-
-        if cmp -s "$project_path" "$canonical_path"; then
-            printf 'OK:   %s matches canonical copy\n' "$relative_path"
-        else
-            printf 'FAIL: %s differs from %s\n' "$project_path" "$canonical_path"
-            failures=$((failures + 1))
-        fi
+                ;;
+            *)
+                printf 'FAIL: %s has tracked mode %s; expected an ordinary file\n' \
+                    "$relativePath" "$trackedMode"
+                failures=$((failures + 1))
+                ;;
+        esac
     done
 done
 
@@ -171,4 +157,3 @@ fi
 
 printf 'FAIL: %s problem(s) found in %s checked project(s).\n' "$failures" "$checked"
 exit 1
-

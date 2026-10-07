@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted 2026-10-07
 
 ## Context
 
@@ -219,15 +219,8 @@ Individual repositories own their project-context sections and their project-spe
 
 ## Validation
 
-Before this ADR is changed from Proposed to Accepted:
-
-1. Draft the consolidated canonical `AGENTS.md`.
-2. Review its rules as normative, preferential, or informative.
-3. Define and test the project-context markers.
-4. Update synchronization tooling to preserve project-owned content.
-5. Pilot the design in `dotmdfiles`.
-6. Pilot it in a more complex repository, preferably ChatMap.
-7. Verify deployed content, file modes, and line endings.
-8. Confirm that critical governing instructions no longer depend on secondary-file discovery.
-
-After successful pilots, migrate the remaining repositories incrementally rather than changing every repository at once.
+Acceptance followed the completed dotmdfiles and ChatMap pilots, passing marker
+regression tests, migration of the registered repositories, verification of
+ordinary tracked file modes, and workstation-wide checks of the synchronized
+`CLAUDE.md` and `AGENTS.md` files. Critical governing instructions no longer
+depend on secondary-file discovery.
