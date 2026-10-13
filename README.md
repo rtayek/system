@@ -16,6 +16,7 @@ leaving implementation and history in the repositories that do the work.
 | [Money](https://github.com/rtayek/money) | Analyze personal transaction data and spending reports. |
 | [OpenWorker](https://github.com/rtayek/openworker) | Preserve bounded OpenWorker experiments and evidence. |
 | [util](https://github.com/rtayek/utilities) | Provide reusable Java utility code. |
+| [mf](https://github.com/rtayek/mf) | Parse and edit SGF game trees and develop a responsive Go user interface. |
 | [dotfiles](https://github.com/rtayek/dotfiles) | Maintain workstation, shell, terminal, and project-launcher configuration. |
 | [bin](https://github.com/rtayek/bin) | Provide user-facing commands that connect the other projects. |
 
@@ -49,7 +50,12 @@ and this six-column header:
 name    path    port    color    chatgpt-url    claude-url
 ```
 
-Deploy it as an ordinary file:
+The `path` field is authoritative for the project's working-tree location.
+Consumers should not infer a project path from its name, Eclipse workspace, or
+the location of another project. Current entries may still live under
+`~/eclipse-workspace`; that is existing data, not a required layout.
+
+Deploy the registry as an ordinary file:
 
 ```sh
 sh deploy-projects.sh
@@ -68,6 +74,28 @@ sh check-projects.sh
 The registry is deliberately a versioned text file rather than a database. It
 is small, reviewable, portable, and shared by commands in dotmdfiles, dotfiles,
 and bin.
+
+## Project-location migration
+
+Project storage and Eclipse workspace membership are separate concerns. A
+project may use Gradle, Make, Eclipse only, another build system, or no build
+system at all. Eclipse workspaces are views over selected projects rather than
+the canonical homes of those projects.
+
+The migration is intentionally incremental:
+
+1. Make registry consumers honor each project's explicit path.
+2. Keep all existing project locations working.
+3. Create a new local project hierarchy and separate Eclipse workspace
+   directories only after the tooling is location-independent.
+4. Move one low-risk project and verify Git, Eclipse, direnv, project-home, and
+   shared instruction synchronization.
+5. Add OneDrive mirroring as a backup layer after local operation is proven.
+6. Move remaining projects gradually.
+
+No additional registry columns are required yet. Build-system, IDE, category,
+or workspace metadata should be added only when migration work demonstrates a
+concrete need.
 
 ## Current direction
 
