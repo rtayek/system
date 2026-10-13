@@ -1,22 +1,23 @@
 #!/bin/sh
 
-# Verify the shared governing files in the System umbrella workspace.
+# Verify the shared governing files in registered projects.
 
 set -u
 
-script_version=1
+script_version=2
 projectsFile=${projectsFile:-${PROJECTS_FILE:-"$HOME/.config/ray/projects.tsv"}}
+projectsRoot=${projectsRoot:-${PROJECTS_ROOT:-"$HOME/eclipse-workspace"}}
 
 usage() {
-    printf 'Usage: %s [workspace [project ...]]\n' "${0##*/}"
+    printf 'Usage: %s [project ...]\n' "${0##*/}"
     printf '\n'
-    printf 'With no arguments, the workspace is the parent of this script.\n'
-    printf 'With no project arguments, paths are read from: %s\n' "$projectsFile"
+    printf 'With no project arguments, all paths are read from: %s\n' "$projectsFile"
+    printf 'Arguments may be registered project names or explicit project paths.\n'
     printf '\n'
     printf 'Examples:\n'
     printf '  %s\n' "${0##*/}"
-    printf '  %s /c/Users/ray/eclipse-workspace\n' "${0##*/}"
-    printf '  %s /c/Users/ray/eclipse-workspace system chatmap dotmdfiles\n' "${0##*/}"
+    printf '  %s system chatmap dotmdfiles\n' "${0##*/}"
+    printf '  %s /d/projects/system /d/projects/chatmap\n' "${0##*/}"
 }
 
 case ${1-} in
@@ -30,33 +31,55 @@ case ${1-} in
         ;;
 esac
 
-script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd -P) || {
-    printf 'Error: cannot determine the script directory.\n' >&2
-    exit 2
-}
-
-workspace=${1-$(dirname -- "$script_dir")}
-if [ "$#" -gt 0 ]; then
-    shift
-fi
-
-if [ ! -d "$workspace" ]; then
-    printf 'Error: not a directory: %s\n' "$workspace" >&2
+if [ ! -f "$projectsFile" ]; then
+    printf 'Error: project registry not found: %s\n' "$projectsFile" >&2
     exit 2
 fi
 
-workspace=$(CDPATH= cd -- "$workspace" 2>/dev/null && pwd -P) || {
-    printf 'Error: cannot access workspace: %s\n' "$workspace" >&2
+resolvePath() {
+    value=$1
+    case "$value" in
+        "~")
+            printf '%s\n' "$HOME"
+            ;;
+        "~/"*)
+            printf '%s/%s\n' "$HOME" "${value#??}"
+            ;;
+        /*|[A-Za-z]:/*)
+            printf '%s\n' "$value"
+            ;;
+        *)
+            printf '%s/%s\n' "$projectsRoot" "$value"
+            ;;
+    esac
+}
+
+registeredPath() {
+    projectName=$1
+    value=$(awk -F '\t' -v name="$projectName" 'NR > 1 && $1 == name { print $2; exit }' "$projectsFile")
+    [ -n "$value" ] || return 1
+    resolvePath "$value"
+}
+
+dotmdfilesDir=$(registeredPath dotmdfiles) || {
+    printf 'Error: dotmdfiles is not registered in %s\n' "$projectsFile" >&2
     exit 2
 }
+syncScript=$dotmdfilesDir/bin/sync-project-files.sh
+
+if [ ! -d "$dotmdfilesDir/.git" ] && [ ! -f "$dotmdfilesDir/.git" ]; then
+    printf 'Error: dotmdfiles project is not a Git working tree: %s\n' "$dotmdfilesDir" >&2
+    exit 2
+fi
+
+if [ ! -f "$syncScript" ]; then
+    printf 'Error: synchronization checker is missing: %s\n' "$syncScript" >&2
+    exit 2
+fi
 
 if [ "$#" -eq 0 ]; then
-    if [ ! -f "$projectsFile" ]; then
-        printf 'Error: project registry not found: %s\n' "$projectsFile" >&2
-        exit 2
-    fi
     tab=$(printf '\t')
-    defaultProjects=$(awk -F "$tab" 'NR > 1 { print $2 }' "$projectsFile")
+    defaultProjects=$(awk -F "$tab" 'NR > 1 { print $1 }' "$projectsFile")
     if [ -z "$defaultProjects" ]; then
         printf 'Error: project registry has no projects: %s\n' "$projectsFile" >&2
         exit 2
@@ -64,52 +87,29 @@ if [ "$#" -eq 0 ]; then
     set -- $defaultProjects
 fi
 
-canonicalDir=$workspace/dotmdfiles/real
-syncScript=$workspace/dotmdfiles/bin/sync-project-files.sh
-if [ ! -d "$canonicalDir" ]; then
-    printf 'Error: Canonical directory not found: %s\n' "$canonicalDir" >&2
-    exit 2
-fi
-
-if [ ! -d "$workspace/dotmdfiles/.git" ] && [ ! -f "$workspace/dotmdfiles/.git" ]; then
-    printf 'Error: dotmdfiles project is not a Git working tree: %s\n' "$workspace/dotmdfiles" >&2
-    exit 2
-fi
-
-for sharedPath in AGENTS.md CLAUDE.md; do
-    if [ ! -f "$canonicalDir/$sharedPath" ]; then
-        printf 'Error: canonical file is missing: %s\n' "$canonicalDir/$sharedPath" >&2
-        exit 2
-    fi
-done
-
-if [ ! -f "$syncScript" ]; then
-    printf 'Error: synchronization checker is missing: %s\n' "$syncScript" >&2
-    exit 2
-fi
-
 failures=0
 checked=0
 
-printf 'Canonical dir: %s\n' "$canonicalDir"
-printf 'Workspace: %s\n' "$workspace"
+printf 'Registry: %s\n' "$projectsFile"
+printf 'dotmdfiles: %s\n' "$dotmdfilesDir"
 
-for project_name do
-    case $project_name in
-        "~"/*) project_dir=$HOME/${project_name#"~/"} ;;
-        /*|[A-Za-z]:*) project_dir=$project_name ;;
-        *) project_dir=$workspace/$project_name ;;
-    esac
+for projectValue do
+    if projectDir=$(registeredPath "$projectValue" 2>/dev/null); then
+        projectName=$projectValue
+    else
+        projectName=$projectValue
+        projectDir=$(resolvePath "$projectValue")
+    fi
 
     printf '%s\n' '------------------------------------------------------------'
-    printf 'Project: %s\n' "$project_dir"
+    printf 'Project: %s\n' "$projectDir"
 
-    if [ ! -d "$project_dir" ]; then
+    if [ ! -d "$projectDir" ]; then
         printf 'WARN: project directory is absent; skipped\n'
         continue
     fi
 
-    if [ ! -d "$project_dir/.git" ] && [ ! -f "$project_dir/.git" ]; then
+    if [ ! -d "$projectDir/.git" ] && [ ! -f "$projectDir/.git" ]; then
         printf 'FAIL: not a Git working tree\n'
         failures=$((failures + 1))
         continue
@@ -117,7 +117,7 @@ for project_name do
 
     checked=$((checked + 1))
 
-    if sh "$syncScript" --check "$project_dir"; then
+    if sh "$syncScript" --check "$projectDir"; then
         printf 'OK:   shared governing content matches canonical sources\n'
     else
         printf 'FAIL: shared governing content differs or is invalid\n'
@@ -125,7 +125,7 @@ for project_name do
     fi
 
     for relativePath in AGENTS.md CLAUDE.md; do
-        trackedMode=$(git -C "$project_dir" ls-files -s -- "$relativePath" |
+        trackedMode=$(git -C "$projectDir" ls-files -s -- "$relativePath" |
             awk 'NR == 1 { print $1 }')
         case $trackedMode in
             100644|100755)
