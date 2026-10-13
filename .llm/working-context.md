@@ -21,7 +21,17 @@ shared content and synchronization. Secondary `.llm` documents are loaded only
 when a project's `AGENTS.md` names them for the current task.
 
 The registry currently includes ChatMap, dotmdfiles, five-rules, System,
-Clipboard, Money, OpenWorker, util, dotfiles, and bin.
+Clipboard, Money, OpenWorker, util, mf, dotfiles, and bin.
+
+A gradual project-location migration has started. The immediate rule is that
+registry paths are authoritative and tooling must not assume that registered
+projects share one Eclipse workspace or one parent directory. Existing paths
+remain unchanged while scripts are made location-independent.
+
+The intended longer-term layout keeps live project working trees on a normal
+local drive, keeps Eclipse workspace metadata separate from project storage,
+and uses OneDrive as a mirrored backup destination rather than as the live
+development filesystem. Migration will happen one project at a time.
 
 ## Current direction
 
@@ -29,13 +39,22 @@ Clipboard, Money, OpenWorker, util, dotfiles, and bin.
 - Let dotmdfiles own shared Markdown sources and deployment.
 - Let dotfiles own shell, terminal, and launcher implementation.
 - Let bin own user-facing commands.
+- Treat each project's registry path as its canonical location.
+- Remove assumptions that all projects live under `~/eclipse-workspace`.
+- Do not add build-system, IDE, category, or workspace columns until real
+  migration work demonstrates that those distinctions are needed.
 - Keep ChatMap's `.chatmap-local/` out of routine agent reading.
 - Use lower camel case for custom shell variables and reserve established
   uppercase names for external conventions such as `HOME` and `PATH`.
 
 ## Next evidence to collect
 
-- Exercise the TSV registry through normal project launch and setup work.
+- Exercise registry-driven project setup and shared-file verification using the
+  existing project locations.
+- Move one low-risk project only after the relevant tooling works without a
+  common-workspace assumption.
+- Add OneDrive mirroring after the first moved project works normally from its
+  new local location.
 - Remove temporary `PROJECTS_FILE` compatibility after local callers migrate.
 - Revisit database storage only if concurrent writes or query volume make the
   versioned text file inadequate.
