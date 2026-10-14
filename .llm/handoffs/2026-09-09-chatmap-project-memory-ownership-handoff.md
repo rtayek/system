@@ -1,11 +1,16 @@
 ---
 id: CM-HANDOFF-PROJECT-MEMORY-OWNERSHIP-2026-09-09
-lifecycle: working
-status: active
+lifecycle: historical
+status: superseded
 provenance: chat-session-2026-09-09
 ---
 
 # ChatMap Project-Memory Ownership Handoff
+
+> Historical note: this handoff records the September 2026 index-based pilot.
+> Its discovery chain is superseded by the accepted consolidated-instructions
+> decision. Current governing discovery is `CLAUDE.md -> AGENTS.md`; `.llm/index.md`,
+> `human.md`, and `persona.md` are not active discovery requirements.
 
 ## Purpose
 

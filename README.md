@@ -115,7 +115,8 @@ Supporting documents:
 
 ## Current direction
 
-ChatMap remains the manual pilot for the dotmdfiles layout. System should adopt
-only cross-project conventions supported by experience in the individual
-projects. Routine agent work must keep `.chatmap-local/` outside normal reading
-and indexing.
+The dotmdfiles/ChatMap instruction-layout pilot is complete and the consolidated
+`CLAUDE.md -> AGENTS.md` model is now the adopted cross-project convention.
+System should continue to adopt only cross-project practices supported by
+experience in the individual projects. Routine agent work must keep
+`.chatmap-local/` outside normal reading and indexing.
