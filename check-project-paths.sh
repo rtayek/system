@@ -75,15 +75,20 @@ printf '%-14s %-7s %-5s %-7s %-8s %-7s %-6s %-6s %s\n' \
     NAME EXISTS GIT ECLIPSE BUILD AGENTS ENVRC HOME PATH
 
 tab=$(printf '\t')
-invalid=0
+
+if ! awk -F "$tab" '
+    NR > 1 && ($1 == "" || $2 == "") {
+        print "Invalid registry entry on line " NR > "/dev/stderr"
+        bad=1
+    }
+    END { exit bad }
+' "$registry"
+then
+    exit 1
+fi
 
 awk -F "$tab" 'NR > 1 { print $1 "|" $2 }' "$registry" |
 while IFS='|' read -r name value; do
-    if [ -z "$name" ] || [ -z "$value" ]; then
-        echo "Invalid registry entry: $name|$value" >&2
-        invalid=1
-        continue
-    fi
 
     path=$(resolvePath "$value")
 
@@ -109,5 +114,3 @@ while IFS='|' read -r name value; do
         "$name" "$(yesNo "$exists")" "$(yesNo "$git")" "$(yesNo "$eclipse")" \
         "$build" "$(yesNo "$agents")" "$(yesNo "$envrc")" "$(yesNo "$homePage")" "$path"
 done
-
-exit "$invalid"
