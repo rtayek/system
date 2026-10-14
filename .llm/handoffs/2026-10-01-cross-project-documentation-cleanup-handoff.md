@@ -1,11 +1,15 @@
 ---
 id: SYS-HANDOFF-2026-10-01-01
-lifecycle: working
-status: active
+lifecycle: historical
+status: completed
 provenance: chat-handoff
 ---
 
 # Handoff: Cross-project documentation cleanup
+
+> Completed historical handoff. The cleanup described here was carried out;
+> current authority is the accepted consolidation ADR plus each repository's
+> `AGENTS.md` and current working context.
 
 ## Purpose
 
