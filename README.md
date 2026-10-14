@@ -71,6 +71,16 @@ Validate the committed file and confirm that the deployed copy is current:
 sh check-projects.sh
 ```
 
+Inspect how every registered path currently resolves:
+
+```sh
+sh check-project-paths.sh
+```
+
+The path diagnostic is observational. It reports whether a project appears to
+use Git, Eclipse, Gradle/Make/Maven, agent instructions, direnv, and a project
+home page, but it does not require those features.
+
 The registry is deliberately a versioned text file rather than a database. It
 is small, reviewable, portable, and shared by commands in dotmdfiles, dotfiles,
 and bin.
@@ -96,6 +106,12 @@ The migration is intentionally incremental:
 No additional registry columns are required yet. Build-system, IDE, category,
 or workspace metadata should be added only when migration work demonstrates a
 concrete need.
+
+Supporting documents:
+
+- `project-model.md` defines the broad meaning of a project.
+- `project-location-audit.md` classifies remaining location assumptions.
+- `project-location-migration.md` is the checklist for moving one project.
 
 ## Current direction
 
