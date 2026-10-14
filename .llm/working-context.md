@@ -28,6 +28,12 @@ registry paths are authoritative and tooling must not assume that registered
 projects share one Eclipse workspace or one parent directory. Existing paths
 remain unchanged while scripts are made location-independent.
 
+System now explicitly treats "project" broadly: software projects, Eclipse-only
+software, Eclipse file-container projects used mainly for browsing files, and
+non-Eclipse projects may all be registered. Missing Git, build files, source
+code, or Eclipse metadata is not inherently an error. `check-project-paths.sh`
+reports these characteristics observationally.
+
 The intended longer-term layout keeps live project working trees on a normal
 local drive, keeps Eclipse workspace metadata separate from project storage,
 and uses OneDrive as a mirrored backup destination rather than as the live
@@ -49,8 +55,8 @@ development filesystem. Migration will happen one project at a time.
 
 ## Next evidence to collect
 
-- Exercise registry-driven project setup and shared-file verification using the
-  existing project locations.
+- Exercise `check-project-paths.sh`, registry-driven project setup, and
+  shared-file verification using the existing project locations.
 - Move one low-risk project only after the relevant tooling works without a
   common-workspace assumption.
 - Add OneDrive mirroring after the first moved project works normally from its
