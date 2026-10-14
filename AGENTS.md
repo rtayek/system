@@ -197,7 +197,9 @@ Changes to `projects.tsv` SHOULD be verified with the existing registry-checking
 - Read `.llm/decisions/` only when the current task requires architectural rationale or a previously recorded cross-project decision.
 - Read `README.md` when changing System's documented role or normal operating workflow.
 - Read `projects.tsv`, `check-projects.sh`, and `deploy-projects.sh` when changing the project registry or its deployment behavior.
-- Read `verify-project-links.sh` when changing project-link validation or cross-project path verification.
+- Read `project-model.md` when changing what System means by a project or proposing new project metadata.
+- Read `project-location-migration.md` and `project-location-audit.md` when moving projects or changing project-location behavior.
+- Read `check-project-paths.sh` and `verify-project-links.sh` when changing project-path diagnostics, shared-file validation, or cross-project path verification.
 - Read historical handoffs only when the current task explicitly requires historical evidence.
 
 <!-- END PROJECT CONTEXT -->
