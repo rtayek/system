@@ -21,7 +21,7 @@ shared content and synchronization. Secondary `.llm` documents are loaded only
 when a project's `AGENTS.md` names them for the current task.
 
 The registry currently includes ChatMap, dotmdfiles, five-rules, System,
-Clipboard, Money, OpenWorker, util, dotfiles, and bin.
+Clipboard, Money, OpenWorker, util, mf, dotfiles, and bin.
 
 ## Current direction
 
